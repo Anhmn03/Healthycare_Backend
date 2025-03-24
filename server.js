@@ -9,23 +9,20 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-// // app.use("/projects", projectRouter);
-// app.use("/employees", employeeRouter.findAllEm);
-// app.use("/employees/:id", employeeRouter.findEmpByDeparment);
-// // app.use("/departments", departmentRouter);
-// app.use("/employees", employeeRouter.addNewEmp);
-// app.use("/employees", employeeRouter.updateEmp);
-// app.use("/",Customer.checkLogin);
 
 app.use("/user/",User.getAllPanti);
-app.use("/user/",User.login);
+app.use("/api/user/",User.login);
 app.use("/user/",User.cretePrescription);
-app.use("/user/",User.viewAllDrug);
-app.use("/user/",User.viewPrescriptionByPantientID);
-app.use("/user/",User.register);
+app.use("/api/",User.viewAllDrug);
+app.use("/api/",User.viewPrescriptionByPantientID);
+app.use("/api/",User.register);
 app.use("/user/",User.getAllService);
 app.use("/user/",User.bookingDrugAndSendToPay);
-app.use("/user/",User.denyOrder);
+app.use("/api/",User.denyOrder);
+app.use("/api/",User.viewHealthcare);
+app.use("/api/",User.viewHealthDetail);
+app.use("/api/",User.viewDrugDetail);
+app.use("/api/",User.confirmOrderAndGetAllPaymentByUserID);
 const config = {
   user: 'sa', 
   password: '123',

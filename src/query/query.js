@@ -14,6 +14,16 @@ async function checkUserByEmail(email) {
   return result.recordset;
 }
 
+async function getHealth() {
+  const result = await sql.query`SELECT * FROM [Health]`;
+  return result.recordset;
+}
+
+async function getHealthByID(id) {
+  const result = await sql.query`SELECT * FROM [Health] where id = ${id}`;
+  return result.recordset;
+}
+
 async function getSymptoms() {
   const result = await sql.query`SELECT * FROM [Symptoms]`;
   return result.recordset;
@@ -28,6 +38,8 @@ async function getDrugByID(id) {
   const result = await sql.query`SELECT * FROM [Medicine]  WHERE id = ${id}`;
   return result.recordset[0];
 }
+
+
 
 async function getPreByPanID(id) {
   const result = await sql.query`SELECT * FROM [Prescription]  WHERE patient_id = ${id}`;
@@ -93,11 +105,28 @@ async function getPaymentByID(id) {
   return result.recordset; 
 }
 
+async function getLastPayment(id) {
+  const result = await sql.query`
+    SELECT TOP 1 * 
+    FROM [Payment] 
+    WHERE user_id = ${id} 
+    ORDER BY created_at DESC`;
+  return result.recordset; 
+}
 async function getAllService() {
   const result = await sql.query`SELECT * FROM [Service]`;
   return result.recordset;
 }
+
+async function getPreDetail(id) {
+  const result = await sql.query`  SELECT Prescription.id,Prescription.doctor_id,Prescription.patient_id,Medicine.name,PrescriptionDetail.quantity,
+  Prescription.instructions
+  FROM [Prescription] join [PrescriptionDetail]
+   on Prescription.id = PrescriptionDetail.prescription_id 
+   join [Medicine] on PrescriptionDetail.medicine_id = Medicine.id where Prescription.id=${id}`;
+  return result.recordset;
+}
 module.exports = {
-  getPatient,getUserByEmail,createPrescription,getPreDetailByID,deleteFromPres,insertIntoPaymen,register,getAllService,
-  getSymptoms,getDrug,createPrescriptionDetail,getDrugByID,deleteStock,getPreByPanID,getPaymentByID,checkUserByEmail
+  getPatient,getUserByEmail,createPrescription,getHealth,getPreDetailByID,getLastPayment,getHealthByID,deleteFromPres,insertIntoPaymen,register,getAllService,
+  getSymptoms,getDrug,createPrescriptionDetail,getDrugByID,deleteStock,getPreByPanID,getPaymentByID,checkUserByEmail,getPreDetail
 };

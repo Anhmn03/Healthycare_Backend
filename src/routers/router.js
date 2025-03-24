@@ -3,16 +3,16 @@ const {
   getPatient,
   getUserByEmail,
   createPrescription,
-  getSymptoms,
+  getSymptoms,getHealth,getHealthByID,
   getDrug,
   deleteFromPres,
   createPrescriptionDetail,
   getDrugByID,
-  getPaymentByID,
+  getPaymentByID,getLastPayment,
   register,
   deleteStock,
   getPreByPanID,
-  getPreDetailByID,
+  getPreDetailByID,getPreDetail,
   checkUserByEmail,
   insertIntoPaymen,
   getAllService,
@@ -41,8 +41,7 @@ module.exports = {
       const user = await getUserByEmail(email, password);
       if (user && user.length > 0) {
         res.status(200).json({
-          success: true,
-          data: user,
+          message: "dang nhap thanh cong"
         });
       } else {
         res.json({ success: false, message: "Sai email hoặc mật khẩu" });
@@ -106,9 +105,24 @@ module.exports = {
       });
     }
   }),
-  viewSymptoms: app.get("/symptoms", async (req, res) => {
+  viewHealthcare: app.get("/healthcare", async (req, res) => {
     try {
-      const sym = await getSymptoms();
+      const sym = await getHealth();
+      res.status(200).json({
+        success: true,
+        data: sym,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi.",
+      });
+    }
+  }),
+  viewHealthDetail: app.get("/healthcare/:id", async (req, res) => {
+    try {
+      const sym = await getHealthByID(req.params.id);
       res.status(200).json({
         success: true,
         data: sym,
@@ -136,11 +150,26 @@ module.exports = {
       });
     }
   }),
+  viewDrugDetail: app.get("/medicine/:id", async (req, res) => {
+    try {
+      const drug = await getDrugByID(req.params.id);
+      res.status(200).json({
+        success: true,
+        data: drug,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi.",
+      });
+    }
+  }),
   viewPrescriptionByPantientID: app.get(
-    "/prescription/:userid",
+    "/prescription",
     async (req, res) => {
       try {
-        const id = req.params.userid;
+        const id = req.query.panid;
         const prescriptions = await getPreByPanID(id);
         const allDetails = [];
         for (const prescription of prescriptions) {
@@ -166,6 +195,40 @@ module.exports = {
       }
     }
   ),
+  viewPrescriptionDetail: app.get("/prescription/:prescription_id", async (req, res) => {
+    try {
+      const id = req.params.prescription_id;
+      const result = await getPreDetail(id);
+      const groupedResult = result.reduce((acc, item) => {
+        let prescription = acc.find(pres => pres.id === item.id);
+        if (!prescription) {
+          prescription = {
+            id: item.id,
+            doctor_id: item.doctor_id,
+            patient_id: item.patient_id,
+            instructions: item.instructions,
+            medicines: []
+          };
+          acc.push(prescription);
+        }
+        prescription.medicines.push({
+          name: item.name,
+          quantity: item.quantity
+        });
+        return acc;
+      }, []);
+      return res.json({
+        success: true,
+        data: groupedResult,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi.",
+      });
+    }
+  }),
   confirmOrderAndGetAllPaymentByUserID: app.get(
     "/confirm",
     async (req, res) => {
@@ -174,7 +237,7 @@ module.exports = {
         const prescriptions = await getPreByPanID(patient_id);
         console.log(prescriptions)
         const selectedPrescription = prescriptions.find(
-          (p) => p.id === Number(idPresc)
+          (p) => p.id === (idPresc)
         );
         if (!selectedPrescription) {
           return res.status(404).json({
@@ -195,7 +258,7 @@ module.exports = {
           patient_id,
           totalPrice
         );
-        const result3 = await getPaymentByID(patient_id);
+        const result3 = await getLastPayment(patient_id);
         res.status(200).json({
           success: true,
           data: result3,
@@ -209,7 +272,7 @@ module.exports = {
       }
     }
   ),
-  denyOrder: app.delete("/deny/:idPresc", async (req, res) => {
+  denyOrder: app.delete("/reject/:idPresc", async (req, res) => {
     try {
       const idPresc = req.params.idPresc;
       const deleteFromPresc = await deleteFromPres(idPresc);
